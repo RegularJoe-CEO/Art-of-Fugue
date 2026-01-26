@@ -28,3 +28,13 @@ The benchmark captures the output of this chaotic mix into a single **SHA-256 Ha
 *   **LuxiEdge:** Produces the exact same hash across all platforms.
 
 When the hash matches across your edge device and your hyperscale cluster, you have truth.
+
+## Related Validation
+
+LuxiEdge has been independently validated by:
+
+- **TestFort QA Lab** - 1-hour GPU endurance test, 0% error rate ([View Report](https://luxiedge.com/validation/testfort))
+- **PFLB Load Testing** - 200 VU sustained load test, SLA fulfilled ([View Results](https://platform.pflb.us/shared/test-runs/4f4fa8ea-19ba-4689-b781-4f5e6e7eb428))
+- **OpenBenchmarking.org** - H100 GPU compute validation ([View](https://openbenchmarking.org/result/luxiedge))
+
+This repository focuses specifically on **cross-platform determinism verification** - proving that SHA-256 hashes match across M1, H100, and L4.
