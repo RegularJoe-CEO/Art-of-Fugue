@@ -1,40 +1,78 @@
-# 🎼 The Art of Fugue: A Determinism Benchmark
+# Art of Fugue: Cross-Platform Floating-Point Determinism Test
 
-**"Standard benchmarks play scales. We needed one that plays a symphony."**
+## The Problem
 
-This repository contains the validation suite used by [LuxiEdge](https://luxiedge.com) to prove **Cross-Platform Determinism** (Bit-Exactness) across heterogeneous hardware.
+When you run the same floating-point math on different hardware, you often get different results. This is not a bug. It is how IEEE 754 floating-point arithmetic works in practice.
 
-## The Concept
+Different CPUs (Intel, AMD, ARM) and GPUs (NVIDIA, AMD) use different:
 
-In High-Performance Computing (HPC), most benchmarks test isolated operations (e.g., `sin(x)` in a loop). This is like playing a single note on a piano. It is easy to get right.
+- Instruction scheduling
+- Fused multiply-add implementations
+- Rounding behavior at microarchitecture level
+- SIMD vectorization strategies
 
-A **Fugue** (specifically Bach’s *The Art of Fugue*) involves multiple complex voices weaving together simultaneously. If a player misses a single note, the harmonic structure collapses.
+The result: identical code produces different outputs on different machines. For most applications, this does not matter. For auditable finance, deterministic simulation replay, and reproducible ML training, it breaks everything.
 
-## The Test
+## What This Test Does
 
-`art_of_fugue.py` simulates a "polyphonic" mathematical workload. It does not test speed; it tests **Identity**.
+This script runs 200,000 floating-point operations (trigonometric and logarithmic) and hashes all results using their exact binary representation via Python float.hex() method. The output is a single SHA-256 hash.
 
-It launches multiple "Voices" (threads) of conflicting mathematical intensity:
-*   **Voice 1:** Trigonometric Identities
-*   **Voice 2:** Logarithmic Decay
-*   **Voice 3:** Discontinuous Transcendentals
+If two machines produce the same hash, they computed bit-identical results. If the hashes differ, the floating-point results drifted.
 
-## The Verification: Bit-Exact Identity
+## How to Run the Test
 
-The benchmark captures the output of this chaotic mix into a single **SHA-256 Hash**.
+Requirements: Python 3.x (no external dependencies)
 
-*   **Goal:** The hash should be identical on a Raspberry Pi, an Apple M1, and an NVIDIA H100.
-*   **Reality:** On most engines, these hashes drift due to scheduler improvisation and floating-point non-associativity.
-*   **LuxiEdge:** Produces the exact same hash across all platforms.
+Step 1: Download the script
 
-When the hash matches across your edge device and your hyperscale cluster, you have truth.
+    curl -O https://raw.githubusercontent.com/RegularJoe-CEO/Art-of-Fugue/main/art_of_fugue.py
 
-## Related Validation
+Step 2: Run it
 
-LuxiEdge has been independently validated by:
+    python3 art_of_fugue.py
 
-- **TestFort QA Lab** - 1-hour GPU endurance test, 0% error rate ([View Report](https://luxiedge.com/validation/testfort))
-- **PFLB Load Testing** - 200 VU sustained load test, SLA fulfilled ([View Results](https://platform.pflb.us/shared/test-runs/4f4fa8ea-19ba-4689-b781-4f5e6e7eb428))
-- **OpenBenchmarking.org** - H100 GPU compute validation ([View](https://openbenchmarking.org/result/luxiedge))
+## Expected Results
 
-This repository focuses specifically on **cross-platform determinism verification** - proving that SHA-256 hashes match across M1, H100, and L4.
+Run this on two different machines. For example, a Mac with an ARM CPU and a Linux server with an Intel CPU or NVIDIA GPU.
+
+You will likely see different hashes:
+
+| Platform | Hash |
+|----------|------|
+| macOS ARM64 (M1/M2/M3) | b02237875da129b90b6355d5918b38657e4bb2e697e413124c661acd0899eb19 |
+| Linux x86_64 (NVIDIA GPU) | c060c5031b1bdb7b730ad6de7639ca87fd3257009a3e3580b71b4f116158c9d6 |
+
+These hashes are different because Python math module calls the platform native C library (libm), which is implemented differently on each architecture.
+
+## Why This Matters
+
+In regulated industries, reproducibility is mandatory:
+
+- Quantitative Finance: Regulatory audits require exact replay of historical calculations
+- Defense Systems: Simulation results must be reproducible for certification
+- Machine Learning: Training runs must be reproducible for debugging and validation
+
+If your math engine cannot guarantee identical results across platforms, you cannot meet these requirements.
+
+## How LuxiEdge Solves This
+
+LuxiEdge is a deterministic computation engine that produces bit-exact results regardless of hardware. The same inputs always produce the same outputs, whether running on ARM, x86, CPU, or GPU.
+
+Example using LuxiEdge with inputs [123.456, 789.012]:
+
+| Platform | LuxiEdge Hash |
+|----------|---------------|
+| macOS ARM64 CPU | 781ae6b19ca58f36bfaaedde6e605f6fc8a766701d69175cbbcd39fe20efd610 |
+| Linux x86_64 GPU | 781ae6b19ca58f36bfaaedde6e605f6fc8a766701d69175cbbcd39fe20efd610 |
+
+Identical hashes. Bit-for-bit determinism across architectures.
+
+Learn more at https://github.com/RegularJoe-CEO/LuxiDemo
+
+## License
+
+MIT
+
+## Copyright
+
+Copyright 2025 Eric Waller. All rights reserved.
