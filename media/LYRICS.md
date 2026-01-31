@@ -63,4 +63,4 @@ Luxi Edge on the beat and the numbers precise
 
 ---
 
-Copyright 2025 Eric Waller. All rights reserved.
+Copyright 2026 Eric Waller. All rights reserved.
